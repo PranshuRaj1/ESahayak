@@ -120,7 +120,7 @@ export function EditBuyerForm({ buyer, canEdit }: EditBuyerFormProps) {
       source: buyer.source as any,
       notes: buyer.notes || "",
       tags: buyer.tags || [],
-      updatedAt: buyer.updatedAt.toISOString(),
+      updatedAt: buyer.updatedAt,
     },
   })
 
