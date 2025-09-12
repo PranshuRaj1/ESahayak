@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Mail, Eye, EyeOff } from "lucide-react"
-import { redirect } from "next/navigation"
+
+import { useRouter } from "next/navigation"
 
 
 interface LoginFormProps {
@@ -21,6 +22,7 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
 
 
@@ -34,14 +36,18 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
     try {
       const result = await signIn(email, password)
 
+    
+
       if (result.success) {
-        redirect("/buyers")
+        router.push("/buyers")
       } else {
         setError(result.message)
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.")
+      setError(error)
       console.error("Registration error:", err)
+      //console.log(error);
+      
     } finally {
       setIsLoading(false)
     }

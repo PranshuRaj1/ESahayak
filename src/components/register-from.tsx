@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Eye, EyeOff } from "lucide-react"
 import { signUp } from "../../server/user"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation";
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void
@@ -22,6 +22,8 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const router = useRouter();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -31,7 +33,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       const result = await signUp(email, password, `${firstName} ${lastName}`.trim())
 
       if (result.success) {
-        redirect("/buyers")
+        router.push("/buyers")
       } else {
         setError(result.message)
       }
