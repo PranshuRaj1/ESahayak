@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation"
 import { EditBuyerForm } from "@/components/buyers/edit-buyer-form"
-import { getCurrentUser } from "@/lib/auth"
+import { getSession } from "@/lib/session"
 
 interface EditBuyerPageProps {
   params: { id: string }
@@ -26,7 +26,7 @@ async function fetchBuyer(id: string) {
 
 export default async function EditBuyerPage({ params }: EditBuyerPageProps) {
   const buyer = await fetchBuyer(params.id)
-  const currentUser = await getCurrentUser()
+  const currentUser = await getSession()
 
   if (!buyer) {
     notFound()

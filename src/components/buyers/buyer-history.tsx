@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { formatDistanceToNow } from "date-fns"
 import { History, User } from "lucide-react"
 
-interface BuyerHistoryItem {
+export interface BuyerHistoryItem {
   id: string
   buyerId: string
   changedBy: string
@@ -17,7 +17,7 @@ interface BuyerHistoryItem {
   }
 }
 
-interface BuyerHistoryProps {
+export interface BuyerHistoryProps {
   history: BuyerHistoryItem[]
 }
 

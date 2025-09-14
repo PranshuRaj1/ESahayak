@@ -1,14 +1,17 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { DataTable } from "../ui/data-table"
+import { DataTable } from "@/components/ui/data-table"
 import { MoreHorizontal, Eye, Edit } from "lucide-react"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
+// For user feedback, you might want a toast library like sonner
+// import { toast } from "sonner"
 
 export type Buyer = {
   id: string
@@ -43,7 +46,6 @@ const statusColors = {
 interface BuyersTableProps {
   data: Buyer[]
   loading?: boolean
-  onStatusChange: (id: string, status: string) => Promise<void>
 }
 
 const MemoizedBadge = React.memo(Badge)
@@ -140,7 +142,30 @@ const ActionsCell = React.memo(({ buyer }: { buyer: Buyer }) => (
 ))
 ActionsCell.displayName = "ActionsCell"
 
-export const BuyersTable = React.memo<BuyersTableProps>(({ data, loading = false, onStatusChange }) => {
+export const BuyersTable = React.memo<BuyersTableProps>(({ data, loading = false }) => {
+  const router = useRouter()
+
+  const handleStatusChange = React.useCallback(async (id: string, status: string) => {
+    try {
+      const response = await fetch(`/api/buyers/${id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to update status")
+      }
+
+      // This is the key: refresh the data from the server
+      router.refresh()
+      // toast.success("Status updated successfully!");
+    } catch (error) {
+      console.error("Failed to update status:", error)
+      // toast.error("Could not update status.");
+    }
+  }, [router])
+
   const columns = React.useMemo<ColumnDef<Buyer>[]>(
     () => [
       {
@@ -189,7 +214,7 @@ export const BuyersTable = React.memo<BuyersTableProps>(({ data, loading = false
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => <StatusCell buyer={row.original} onStatusChange={onStatusChange} />,
+        cell: ({ row }) => <StatusCell buyer={row.original} onStatusChange={handleStatusChange} />,
       },
       {
         accessorKey: "updatedAt",
@@ -205,10 +230,11 @@ export const BuyersTable = React.memo<BuyersTableProps>(({ data, loading = false
         cell: ({ row }) => <ActionsCell buyer={row.original} />,
       },
     ],
-    [onStatusChange],
+    [handleStatusChange],
   )
 
   return <DataTable columns={columns} data={data} />
 })
 
 BuyersTable.displayName = "BuyersTable"
+

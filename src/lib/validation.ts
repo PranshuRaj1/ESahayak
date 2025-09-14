@@ -52,7 +52,7 @@ export const buyerFiltersSchema = z.object({
   propertyType: z.enum(["Apartment", "Villa", "Plot", "Office", "Retail"]).optional(),
   status: z.enum(["New", "Qualified", "Contacted", "Visited", "Negotiation", "Converted", "Dropped"]).optional(),
   timeline: z.enum(["0-3m", "3-6m", ">6m", "Exploring"]).optional(),
-  search: z.string().optional(),
+  search: z.string().min(1).optional(),
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(100).default(10),
 })
