@@ -72,7 +72,7 @@ export const verification = pgTable("verification", {
     .notNull(),
 });
 
-// --- ENUMS (Unchanged) ---
+
 export const cityEnum = pgEnum("city_enum", [
   "Chandigarh",
   "Mohali",
@@ -102,7 +102,7 @@ export const statusEnum = pgEnum("status_enum", [
 ]);
 
 // ---------------------------------
-// --- BUYERS TABLE (CORRECTED) ---
+// --- BUYERS TABLE) ---
 // ---------------------------------
 export const buyers = pgTable("buyers", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -121,8 +121,7 @@ export const buyers = pgTable("buyers", {
   notes: text("notes"),
   tags: text("tags").array(),
   
-  // --- THIS IS THE FIX ---
-  // Changed from uuid() to text() and added references() to match the user.id
+ 
   ownerId: text("ownerId")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }), // Links to the user table
@@ -131,7 +130,7 @@ export const buyers = pgTable("buyers", {
 });
 
 // ----------------------------------------
-// --- BUYER HISTORY TABLE (CORRECTED) ---
+// --- BUYER HISTORY TABLE---
 // ----------------------------------------
 export const buyerHistory = pgTable("buyer_history", {
   id: uuid("id").primaryKey().defaultRandom(),

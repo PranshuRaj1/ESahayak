@@ -58,8 +58,8 @@ export function BuyerLeadForm() {
     propertyType: "",
     bhk: "",
     purpose: "",
-    budgetMin: 6000000, // This default is fine
-    budgetMax: 7000000, // This default is fine
+    budgetMin: null, // This default is fine
+    budgetMax: null, // This default is fine
     timeline: "",
     source: "",
     notes: "",

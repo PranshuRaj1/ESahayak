@@ -148,7 +148,7 @@ export function BuyerEditModal({ buyer, open, onOpenChange, onSuccess }: BuyerEd
     } catch (err) {
       if (err instanceof z.ZodError) {
         const errors: Record<string, string> = {}
-        err.errors.forEach((error) => {
+        err.issues.forEach((error) => {
           if (error.path.length > 0) {
             errors[error.path[0] as string] = error.message
           }
