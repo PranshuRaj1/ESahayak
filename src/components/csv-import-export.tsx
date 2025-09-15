@@ -11,10 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { Upload, Download, AlertCircle, CheckCircle } from "lucide-react"
 import { toast } from "sonner"
 
-// NOTE: You must create a server action at app/actions/export-leads.ts
-// for this to work in a production environment.
-// For now, this component uses a mock.
 import { exportLeads } from "@/app/actions/export-leads" 
+import { SQL } from "drizzle-orm"
 
 interface ImportError {
   row: number
@@ -22,20 +20,26 @@ interface ImportError {
   message: string
 }
 
+// Corrected: A type for the raw, unvalidated CSV data
+interface RawLeadData {
+  [key: string]: string
+}
+
+// Corrected: A type for the validated and parsed data
 interface LeadData {
   fullName: string
-  email: string
+  email: string | undefined
   phone: string
   city: string
   propertyType: string
-  bhk: string
+  bhk: string | undefined
   purpose: string
-  budgetMin: string
-  budgetMax: string
+  budgetMin: number | undefined
+  budgetMax: number | undefined
   timeline: string
   source: string
-  notes: string
-  tags: string
+  notes: string | undefined
+  tags: string | undefined
   status: string
 }
 
@@ -45,7 +49,8 @@ const timelines = ["Immediate", "1-3 months", "3-6 months", "6+ months"]
 const sources = ["Website", "Referral", "Social Media", "Advertisement", "Walk-in", "Other"]
 const statuses = ["New", "Contacted", "Qualified", "Converted", "Lost"]
 
-const validateRow = (row: any, rowIndex: number): { isValid: boolean; errors: ImportError[] } => {
+// Corrected: Replace `any` with the `RawLeadData` interface
+const validateRow = (row: RawLeadData, rowIndex: number): { isValid: boolean; errors: ImportError[] } => {
   const errors: ImportError[] = []
 
   // fullName validation: ≥ 2 chars
@@ -174,7 +179,8 @@ const validateRow = (row: any, rowIndex: number): { isValid: boolean; errors: Im
   return { isValid: errors.length === 0, errors }
 }
 
-const parseCSV = (csvText: string): any[] => {
+// Corrected: The function now returns an array of `RawLeadData` objects
+const parseCSV = (csvText: string): RawLeadData[] => {
   const lines = csvText.trim().split("\n")
   if (lines.length === 0) return []
 
@@ -183,7 +189,7 @@ const parseCSV = (csvText: string): any[] => {
 
   for (let i = 1; i < lines.length && i <= 200; i++) {
     const values = lines[i].split(",").map((v) => v.trim().replace(/"/g, ""))
-    const row: any = {}
+    const row: RawLeadData = {} // Corrected: Use the RawLeadData type
 
     headers.forEach((header, index) => {
       row[header] = values[index] || ""
@@ -249,7 +255,23 @@ export function CsvImportExport() {
         const { isValid, errors } = validateRow(row, index)
 
         if (isValid) {
-          validRowsData.push(row as LeadData)
+          // Corrected: Manually map from RawLeadData to LeadData
+          validRowsData.push({
+            fullName: row.fullName,
+            email: row.email || undefined,
+            phone: row.phone,
+            city: row.city,
+            propertyType: row.propertyType,
+            bhk: row.bhk || undefined,
+            purpose: row.purpose,
+            budgetMin: row.budgetMin ? Number.parseFloat(row.budgetMin) : undefined,
+            budgetMax: row.budgetMax ? Number.parseFloat(row.budgetMax) : undefined,
+            timeline: row.timeline,
+            source: row.source,
+            notes: row.notes || undefined,
+            tags: row.tags || undefined,
+            status: row.status,
+          })
         } else {
           allErrors.push(...errors)
         }
@@ -310,13 +332,11 @@ export function CsvImportExport() {
   }
 
   const handleExport = async () => {
-    // This assumes you have the filters, search, and sort state from a parent component.
-    // For this example, we'll use placeholder values. You should pass the actual
-    // state from your main leads table component.
-    const filters : string[]  = [] // e.g., filters from your UI state
-    const sortColumn = "fullName" // e.g., the current sort column from your UI state
-    const sortOrder = "asc" // e.g., the current sort order from your UI state
-
+    type Filter = SQL<unknown>;
+    const filters: Filter[]  = []
+    const sortColumn = "fullName"
+    const sortOrder = "asc" as "asc" | "desc"; // Type assertion for string literal
+    
     try {
       toast.info("Preparing export...", { description: "Fetching data from the database." })
       

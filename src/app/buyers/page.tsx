@@ -1,7 +1,6 @@
 import { Suspense } from "react"
 import { BuyersListPage } from "@/components/buyers-list"
-import { CsvImportExport } from "@/components/ccsv-import-export"
-import { Button } from "@/components/ui/button"
+import { CsvImportExport } from "@/components/csv-import-export"
 import NewEntry from "@/components/newEntry"
 
 export default function Buyers() {

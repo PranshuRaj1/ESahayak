@@ -38,7 +38,8 @@ interface HistoryRecord {
   buyerId: string
   changedBy: string
   changedAt: string
-  diff: Record<string, { old: any; new: any }>
+  // Replaced `any` with `unknown`
+  diff: Record<string, { old: unknown; new: unknown }>
 }
 
 const cities = ["Chandigarh", "Mohali", "Zirakpur", "Panchkula", "Other"]
@@ -79,7 +80,6 @@ export function BuyerViewEdit({ id }: { id: string }) {
 
       if (!response.ok) {
         if (response.status === 404) {
-          
           router.push("/")
           return
         }
@@ -92,7 +92,6 @@ export function BuyerViewEdit({ id }: { id: string }) {
       setFormData(data.buyer)
     } catch (error) {
       console.error("Error fetching buyer:", error)
-      
     } finally {
       setIsLoading(false)
     }
@@ -115,7 +114,6 @@ export function BuyerViewEdit({ id }: { id: string }) {
 
       if (!response.ok) {
         if (response.status === 409) {
-          
           fetchBuyer() // Refresh data
           return
         }
@@ -125,11 +123,9 @@ export function BuyerViewEdit({ id }: { id: string }) {
       setBuyer(data.buyer)
       setFormData(data.buyer)
       setIsEditing(false)
-     
       fetchBuyer() // Refresh to get updated history
     } catch (error) {
       console.error("Error updating buyer:", error)
-      
     } finally {
       setIsSaving(false)
     }
@@ -158,14 +154,24 @@ export function BuyerViewEdit({ id }: { id: string }) {
     })
   }
 
-  const renderHistoryValue = (value: any) => {
+  // Replaced `any` with `unknown` and added type checks
+  const renderHistoryValue = (value: unknown) => {
     if (Array.isArray(value)) {
-      return value.join(", ")
+      // Safely join array elements
+      return value.map(String).join(", ");
     }
-    if (typeof value === "number" && value > 1000) {
-      return formatCurrency(value)
+    if (typeof value === "number") {
+      // Check if it's a number and format
+      if (value > 1000) {
+        return formatCurrency(value);
+      }
+      return String(value);
     }
-    return String(value)
+    // Handle other types gracefully
+    if (value === null || value === undefined) {
+      return "Not set";
+    }
+    return String(value);
   }
 
   if (isLoading) {

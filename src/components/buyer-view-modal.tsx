@@ -31,7 +31,8 @@ interface BuyerHistory {
   buyerId: string
   changedBy: string
   changedAt: string
-  diff: Record<string, { old: any; new: any }>
+  // Changed `any` to `unknown`
+  diff: Record<string, { old: unknown; new: unknown }> 
 }
 
 interface BuyerViewModalProps {
@@ -56,7 +57,8 @@ export function BuyerViewModal({ buyer, open, onOpenChange }: BuyerViewModalProp
       const response = await fetch(`/api/buyers/${buyer.id}/history`)
       if (response.ok) {
         const data = await response.json()
-        setHistory(data.history || [])
+        // Here, we can safely assume the data matches the type and cast it.
+        setHistory(data.history as BuyerHistory[] || [])
       }
     } catch (error) {
       console.error("Error fetching buyer history:", error)
@@ -100,17 +102,24 @@ export function BuyerViewModal({ buyer, open, onOpenChange }: BuyerViewModalProp
     }
     return buyer.budgetMin ? `From ${formatAmount(buyer.budgetMin)}` : `Up to ${formatAmount(buyer.budgetMax!)}`
   }
-
-  const formatFieldChange = (field: string, oldValue: any, newValue: any) => {
+  
+  // Changed `any` to `unknown` and added type checks
+  const formatFieldChange = (field: string, oldValue: unknown, newValue: unknown) => {
     if (field === "budgetMin" || field === "budgetMax") {
       const formatAmount = (amount: number) => {
         if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(1)}Cr`
         if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`
         return `₹${amount.toLocaleString()}`
       }
-      return `${oldValue ? formatAmount(oldValue) : "Not set"} → ${newValue ? formatAmount(newValue) : "Not set"}`
+      // Added check to ensure oldValue and newValue are numbers
+      const oldAmount = typeof oldValue === "number" ? formatAmount(oldValue) : "Not set";
+      const newAmount = typeof newValue === "number" ? formatAmount(newValue) : "Not set";
+      return `${oldAmount} → ${newAmount}`;
     }
-    return `${oldValue || "Not set"} → ${newValue || "Not set"}`
+    // Added a more generic string conversion to handle unknown types gracefully
+    const oldString = typeof oldValue !== "undefined" && oldValue !== null ? String(oldValue) : "Not set";
+    const newString = typeof newValue !== "undefined" && newValue !== null ? String(newValue) : "Not set";
+    return `${oldString} → ${newString}`;
   }
 
   return (
