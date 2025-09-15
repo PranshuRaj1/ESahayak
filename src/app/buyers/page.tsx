@@ -1,5 +1,8 @@
 import { Suspense } from "react"
 import { BuyersListPage } from "@/components/buyers-list"
+import { CsvImportExport } from "@/components/ccsv-import-export"
+import { Button } from "@/components/ui/button"
+import NewEntry from "@/components/newEntry"
 
 export default function Buyers() {
   return (
@@ -9,8 +12,11 @@ export default function Buyers() {
           <h1 className="text-3xl font-bold text-foreground">Buyers Management</h1>
           <p className="text-muted-foreground mt-2">Manage and search through your buyer database</p>
         </div>
+        <NewEntry />
         <Suspense fallback={<div className="text-center py-8">Loading...</div>}>
           <BuyersListPage />
+
+          <CsvImportExport />
         </Suspense>
       </div>
     </div>

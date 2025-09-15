@@ -11,6 +11,7 @@ import {
   
 } from "drizzle-orm/pg-core";
 
+// --- AUTH SCHEMA (Unchanged) ---
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -71,7 +72,7 @@ export const verification = pgTable("verification", {
     .notNull(),
 });
 
-// Enums
+// --- ENUMS (Unchanged) ---
 export const cityEnum = pgEnum("city_enum", [
   "Chandigarh",
   "Mohali",
@@ -79,7 +80,6 @@ export const cityEnum = pgEnum("city_enum", [
   "Panchkula",
   "Other",
 ]);
-
 export const propertyTypeEnum = pgEnum("property_type_enum", [
   "Apartment",
   "Villa",
@@ -87,15 +87,10 @@ export const propertyTypeEnum = pgEnum("property_type_enum", [
   "Office",
   "Retail",
 ]);
-
 export const bhkEnum = pgEnum("bhk_enum", ["1", "2", "3", "4", "Studio"]);
-
 export const purposeEnum = pgEnum("purpose_enum", ["Buy", "Rent"]);
-
 export const timelineEnum = pgEnum("timeline_enum", ["0-3m", "3-6m", ">6m", "Exploring"]);
-
 export const sourceEnum = pgEnum("source_enum", ["Website", "Referral", "Walk-in", "Call", "Other"]);
-
 export const statusEnum = pgEnum("status_enum", [
   "New",
   "Qualified",
@@ -106,7 +101,9 @@ export const statusEnum = pgEnum("status_enum", [
   "Dropped",
 ]);
 
-// Buyers table
+// ---------------------------------
+// --- BUYERS TABLE (CORRECTED) ---
+// ---------------------------------
 export const buyers = pgTable("buyers", {
   id: uuid("id").primaryKey().defaultRandom(),
   fullName: varchar("fullName", { length: 80 }).notNull(),
@@ -122,18 +119,32 @@ export const buyers = pgTable("buyers", {
   source: sourceEnum("source").notNull(),
   status: statusEnum("status").notNull().default("New"),
   notes: text("notes"),
-  tags: text("tags").array(), // this will be null, if no tags are added. Would be better to have empty array as default
-  ownerId: uuid("ownerId").notNull(),
+  tags: text("tags").array(),
+  
+  // --- THIS IS THE FIX ---
+  // Changed from uuid() to text() and added references() to match the user.id
+  ownerId: text("ownerId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }), // Links to the user table
+    
   updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
 });
 
-// Buyer History table
+// ----------------------------------------
+// --- BUYER HISTORY TABLE (CORRECTED) ---
+// ----------------------------------------
 export const buyerHistory = pgTable("buyer_history", {
   id: uuid("id").primaryKey().defaultRandom(),
   buyerId: uuid("buyerId")
     .notNull()
     .references(() => buyers.id, { onDelete: "cascade" }),
-  changedBy: uuid("changedBy").notNull(),
+    
+  // --- THIS IS THE FIX ---
+  // Changed from uuid() to text() and added references()
+  changedBy: text("changedBy")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }), // Links to the user table
+
   changedAt: timestamp("changedAt", { withTimezone: true }).defaultNow().notNull(),
   diff: jsonb("diff").notNull(),
 });
