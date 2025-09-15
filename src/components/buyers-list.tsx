@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, Eye, Edit, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { useDebounce } from "@/hooks/use-debounce"
+import { BuyerViewModal } from "@/components/buyer-view-modal"
+import { BuyerEditModal } from "@/components/buyer-edit-modal"
 
 interface Buyer {
   id: string
@@ -68,7 +70,10 @@ export function BuyersListPage() {
     timelines: [] as string[],
   })
 
-  // URL-synced state
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [selectedBuyer, setSelectedBuyer] = useState<Buyer | null>(null)
+
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "")
   const [cityFilter, setCityFilter] = useState(searchParams.get("city") || "All Cities")
   const [propertyTypeFilter, setPropertyTypeFilter] = useState(searchParams.get("propertyType") || "All Property Types")
@@ -78,7 +83,6 @@ export function BuyersListPage() {
   const [sortOrder, setSortOrder] = useState(searchParams.get("sortOrder") || "desc")
   const [currentPage, setCurrentPage] = useState(Number.parseInt(searchParams.get("page") || "1"))
 
-  // Debounced search
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
   const fetchBuyers = useCallback(async () => {
@@ -208,12 +212,26 @@ export function BuyersListPage() {
     return buyer.budgetMin ? `From ${formatAmount(buyer.budgetMin)}` : `Up to ${formatAmount(buyer.budgetMax!)}`
   }
 
+  const handleView = (buyer: Buyer) => {
+    setSelectedBuyer(buyer)
+    setViewModalOpen(true)
+  }
+
+  const handleEdit = (buyer: Buyer) => {
+    setSelectedBuyer(buyer)
+    setEditModalOpen(true)
+  }
+
+  const handleEditSuccess = () => {
+    setEditModalOpen(false)
+    setSelectedBuyer(null)
+    fetchBuyers() // Refresh the list
+  }
+
   return (
     <div className="space-y-6">
-      {/* Search and Filters */}
       <Card className="p-6">
         <div className="space-y-4">
-          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
@@ -224,7 +242,6 @@ export function BuyersListPage() {
             />
           </div>
 
-          {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Select value={cityFilter} onValueChange={setCityFilter}>
               <SelectTrigger>
@@ -283,7 +300,6 @@ export function BuyersListPage() {
             </Select>
           </div>
 
-          {/* Clear Filters */}
           <div className="flex justify-between items-center">
             <Button variant="outline" onClick={clearFilters}>
               Clear All Filters
@@ -302,7 +318,6 @@ export function BuyersListPage() {
         </div>
       </Card>
 
-      {/* Table */}
       <Card>
         <div className="overflow-x-auto">
           <Table>
@@ -368,10 +383,10 @@ export function BuyersListPage() {
                     <TableCell>{new Date(buyer.updatedAt).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => handleView(buyer)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => handleEdit(buyer)}>
                           <Edit className="h-4 w-4" />
                         </Button>
                       </div>
@@ -383,7 +398,6 @@ export function BuyersListPage() {
           </Table>
         </div>
 
-        {/* Pagination */}
         {pagination.totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t">
             <div className="text-sm text-muted-foreground">
@@ -412,6 +426,18 @@ export function BuyersListPage() {
           </div>
         )}
       </Card>
+
+      {selectedBuyer && (
+        <>
+          <BuyerViewModal buyer={selectedBuyer} open={viewModalOpen} onOpenChange={setViewModalOpen} />
+          <BuyerEditModal
+            buyer={selectedBuyer}
+            open={editModalOpen}
+            onOpenChange={setEditModalOpen}
+            onSuccess={handleEditSuccess}
+          />
+        </>
+      )}
     </div>
   )
 }
